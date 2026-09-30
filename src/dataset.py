@@ -6,12 +6,13 @@ import matplotlib.pyplot as plt
 DATASET_ROOT = "/mnt/data/stud-ueqio/datasets/nffa_sem_100"
 
 
-def get_dataset():
+def get_dataset(transform=None):
     """
     Erstellt das PyTorch-Dataset.
     """
+    if transform is None:
+        transform = transforms.ToTensor()
 
-    transform = transforms.ToTensor()
 
     dataset = datasets.ImageFolder(
         root=DATASET_ROOT,
@@ -21,12 +22,12 @@ def get_dataset():
     return dataset
 
 
-def get_dataloader(batch_size=4, shuffle=True):
+def get_dataloader(batch_size=4, shuffle=True, transform=None):
     """
     Erstellt einen DataLoader für das Dataset.
     """
 
-    dataset = get_dataset()
+    dataset = get_dataset(transform=transform)
 
     loader = DataLoader(
         dataset,
