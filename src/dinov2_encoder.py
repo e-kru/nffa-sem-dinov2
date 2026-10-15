@@ -1,7 +1,9 @@
 import torch
 from torchvision import transforms
-from dataset import get_dataset
-from dataset import get_dataloader
+
+from src.dataset import get_dataset, get_dataloader
+from src.preprocessing import crop_metadata_strip
+
 
 
 
@@ -10,12 +12,13 @@ MODEL_NAME = "dinov2_vits14"
 
 def get_dinov2_transform():
     transform = transforms.Compose([
+        transforms.Lambda(crop_metadata_strip),
         transforms.Resize(256),
         transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize(
-            mean=(0.458, 0.448, 0.408),
-            std=(0.268, 0.261, 0.275)
+            mean=(0.485, 0.456, 0.406),
+            std=(0.229, 0.224, 0.225)
         )
     ])
     return transform
