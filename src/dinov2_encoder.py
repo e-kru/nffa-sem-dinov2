@@ -2,7 +2,7 @@ import torch
 from torchvision import transforms
 
 from src.dataset import get_dataset, get_dataloader
-from src.preprocessing import crop_metadata_strip
+from src.preprocessing_v2 import crop_metadata_strip
 
 
 

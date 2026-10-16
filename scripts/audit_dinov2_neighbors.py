@@ -1,176 +1,274 @@
 
 import argparse
 import csv
-import json
 from pathlib import Path
 
 import numpy as np
 import torch
 import torch.nn.functional as F
-
-from scripts.train_classifier import load_features, get_splits
-
-
-OUTPUT_DIR = Path("outputs/audit")
-SPLIT_FILE = Path("outputs/splits.json")
-PHASH_CACHE = OUTPUT_DIR / "phash_cache.npz"
-SHA_REPORT = OUTPUT_DIR / "sha256_duplicates.csv"
+from tqdm import tqdm
 
 
-def load_phashes():
-    """Load previously computed perceptual hashes."""
-    if not PHASH_CACHE.exists():
-        return {}
+ROOT = Path("outputs/dataset_v2")
+FEATURE_DIR = ROOT / "features"
+MANIFEST = ROOT / "manifest.csv"
+HASH_FILE = ROOT / "image_hashes.csv"
+OUTPUT = ROOT / "dinov2_neighbors.csv"
 
-    with np.load(PHASH_CACHE, allow_pickle=False) as data:
-        return {
-            str(path): int(h)
-            for path, h in zip(data["paths"], data["hashes"])
+
+def load_features():
+    """Load all Dataset V2 feature chunks."""
+
+    files = sorted(FEATURE_DIR.glob("chunk_*.npz"))
+
+    if not files:
+        raise FileNotFoundError("No feature chunks found")
+
+    features = []
+    labels = []
+    paths = []
+
+    for file in files:
+        with np.load(file, allow_pickle=False) as data:
+            features.append(data["X"])
+            labels.append(data["y"])
+            paths.append(data["paths"])
+
+    X = np.concatenate(features).astype(np.float32)
+    y = np.concatenate(labels)
+    paths = np.concatenate(paths).astype(str)
+
+    if X.shape[1] != 384:
+        raise ValueError(f"Unexpected feature shape: {X.shape}")
+
+    if not np.isfinite(X).all():
+        raise ValueError("Features contain NaN or infinity")
+
+    if len(set(paths)) != len(paths):
+        raise ValueError("Duplicate image paths in features")
+
+    return X, y, paths
+
+
+def load_manifest():
+    """Load included image paths and labels."""
+
+    with open(MANIFEST, newline="") as f:
+        rows = list(csv.DictReader(f))
+
+    included = {
+        row["image_id"]: int(row["label"])
+        for row in rows
+        if row["included"] == "1"
+    }
+
+    return included
+
+
+def load_hashes():
+    """Load pHash and exact pixel hash for each image."""
+
+    with open(HASH_FILE, newline="") as f:
+        rows = list(csv.DictReader(f))
+
+    hashes = {}
+
+    for row in rows:
+        path = row["image_id"]
+
+        if path in hashes:
+            raise ValueError(f"Duplicate hash entry: {path}")
+
+        hashes[path] = {
+            "phash": int(row["phash"], 16),
+            "pixel_sha256": row["pixel_sha256"],
         }
 
-
-def load_sha_groups():
-    """Map paths of exact duplicate files to their SHA-256."""
-    result = {}
-
-    if SHA_REPORT.exists():
-        with open(SHA_REPORT) as f:
-            for row in csv.DictReader(f):
-                result[row["path"]] = row["sha256"]
-
-    return result
+    return hashes
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--device", default="cpu")
+
+    parser.add_argument(
+        "--device",
+        choices=["cpu", "cuda"],
+        default="cpu",
+    )
     parser.add_argument("--batch-size", type=int, default=512)
-    parser.add_argument("--top-k", type=int, default=5)
+    parser.add_argument("--top-k", type=int, default=10)
+
     args = parser.parse_args()
 
-    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    if args.batch_size <= 0 or args.top_k <= 0:
+        raise ValueError("Batch size and top-k must be positive")
 
-    with open(SPLIT_FILE) as f:
-        split_info = json.load(f)
-
-    # Load already extracted DINOv2 features
-    X, y, paths = load_features()
-    splits = get_splits(X, y, paths)
-
-    X_train, _ = splits["train"]
-    X_val, _ = splits["val"]
-
-    train_records = split_info["train"]
-    val_records = split_info["val"]
-
-    phashes = load_phashes()
-    sha_groups = load_sha_groups()
+    if args.device == "cuda" and not torch.cuda.is_available():
+        raise RuntimeError("CUDA is not available")
 
     device = torch.device(args.device)
 
-    if device.type == "cuda" and not torch.cuda.is_available():
-        raise RuntimeError("CUDA is not available.")
+    # --------------------------------------------------
+    # 1. Load all features and metadata
+    # --------------------------------------------------
 
-    # Convert NumPy arrays to tensors and normalize vectors
-    train = F.normalize(
-        torch.from_numpy(X_train).to(device),
-        dim=1
+    X, y, paths = load_features()
+    included = load_manifest()
+    hashes = load_hashes()
+
+    n = len(paths)
+
+    if set(paths) != set(included):
+        raise ValueError("Features do not match Dataset V2 manifest")
+
+    if set(paths) != set(hashes):
+        raise ValueError("Hashes do not match Dataset V2 features")
+
+    for path, label in zip(paths, y):
+        if int(label) != included[path]:
+            raise ValueError(f"Label mismatch: {path}")
+
+    if n <= 1:
+        raise ValueError("Need at least two images")
+
+    k = min(args.top_k, n - 1)
+
+    print(f"Images: {n}")
+    print(f"Feature matrix: {X.shape}")
+    print(f"Device: {device}")
+    print(f"Top-k: {k}")
+
+    # --------------------------------------------------
+    # 2. Normalize DINOv2 features
+    # --------------------------------------------------
+
+    Z = F.normalize(
+        torch.from_numpy(X).to(device),
+        p=2,
+        dim=1,
     )
-    val = F.normalize(
-        torch.from_numpy(X_val).to(device),
-        dim=1
-    )
 
-    results = []
+    top1_scores = []
+    cross_class_pairs = 0
+    total_pairs = 0
 
-    # Compute similarities in batches
-    with torch.inference_mode():
-        for start in range(0, len(val), args.batch_size):
-            end = min(start + args.batch_size, len(val))
+    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
 
-            similarities = val[start:end] @ train.T
+    # --------------------------------------------------
+    # 3. Global nearest-neighbor search
+    # --------------------------------------------------
 
-            scores, indices = torch.topk(
-                similarities,
-                k=args.top_k,
-                dim=1
-            )
+    with open(OUTPUT, "w", newline="") as f:
+        writer = csv.writer(f)
 
-            scores = scores.cpu().numpy()
-            indices = indices.cpu().numpy()
+        writer.writerow([
+            "image_a",
+            "image_b",
+            "label_a",
+            "label_b",
+            "rank",
+            "cosine_similarity",
+            "phash_distance",
+            "pixel_sha256_identical",
+        ])
 
-            for i in range(end - start):
-                val_record = val_records[start + i]
-                val_path = val_record["path"]
+        with torch.inference_mode():
 
-                for rank in range(args.top_k):
-                    train_idx = int(indices[i, rank])
-                    train_record = train_records[train_idx]
-                    train_path = train_record["path"]
+            for start in tqdm(
+                range(0, n, args.batch_size),
+                desc="DINOv2 neighbors",
+            ):
+                end = min(start + args.batch_size, n)
 
-                    # Compare pHashes for this exact image pair
-                    phash_distance = ""
+                # Similarity to every image in the dataset
+                similarities = Z[start:end] @ Z.T
 
-                    if val_path in phashes and train_path in phashes:
+                # Exclude self-comparisons
+                local_indices = torch.arange(
+                    end - start, device=device
+                )
+                global_indices = torch.arange(
+                    start, end, device=device
+                )
+
+                similarities[
+                    local_indices,
+                    global_indices,
+                ] = -float("inf")
+
+                scores, indices = torch.topk(
+                    similarities,
+                    k=k,
+                    dim=1,
+                )
+
+                scores = scores.cpu().numpy()
+                indices = indices.cpu().numpy()
+
+                # Save the neighbors for each image
+                for local_i in range(end - start):
+                    i = start + local_i
+
+                    path_a = str(paths[i])
+                    label_a = int(y[i])
+
+                    top1_scores.append(float(scores[local_i, 0]))
+
+                    for rank in range(k):
+                        j = int(indices[local_i, rank])
+
+                        path_b = str(paths[j])
+                        label_b = int(y[j])
+
+                        similarity = float(scores[local_i, rank])
+
                         phash_distance = (
-                            phashes[val_path] ^ phashes[train_path]
+                            hashes[path_a]["phash"]
+                            ^ hashes[path_b]["phash"]
                         ).bit_count()
 
-                    # Check whether the files are exactly identical
-                    sha_identical = (
-                        val_path in sha_groups
-                        and train_path in sha_groups
-                        and sha_groups[val_path] == sha_groups[train_path]
-                    )
+                        same_pixels = (
+                            hashes[path_a]["pixel_sha256"]
+                            == hashes[path_b]["pixel_sha256"]
+                        )
 
-                    results.append({
-                        "val_path": val_path,
-                        "train_path": train_path,
-                        "val_label": val_record["label"],
-                        "train_label": train_record["label"],
-                        "rank": rank + 1,
-                        "cosine_similarity": float(scores[i, rank]),
-                        "phash_distance": phash_distance,
-                        "sha256_identical": sha_identical,
-                    })
+                        if label_a != label_b:
+                            cross_class_pairs += 1
 
-            print(f"Processed {end}/{len(val)} validation images")
+                        total_pairs += 1
 
-    # Sort by cosine similarity, highest first
-    results.sort(
-        key=lambda r: r["cosine_similarity"],
-        reverse=True
-    )
+                        writer.writerow([
+                            path_a,
+                            path_b,
+                            label_a,
+                            label_b,
+                            rank + 1,
+                            similarity,
+                            phash_distance,
+                            int(same_pixels),
+                        ])
 
-    output = OUTPUT_DIR / "dinov2_neighbors.csv"
+    # --------------------------------------------------
+    # 4. Summary
+    # --------------------------------------------------
 
-    with open(output, "w", newline="") as f:
-        writer = csv.DictWriter(
-            f, fieldnames=results[0].keys()
-        )
-        writer.writeheader()
-        writer.writerows(results)
+    similarities = np.asarray(top1_scores)
 
-    # Summarize nearest-neighbor similarity
-    top1 = [
-        row for row in results
-        if row["rank"] == 1
-    ]
-
-    similarities = np.array([
-        row["cosine_similarity"] for row in top1
-    ])
-
-    print("\n--- DINOv2 Nearest-Neighbor Audit ---")
-    print(f"Validation images: {len(top1)}")
-    print(f"Total neighbor pairs: {len(results)}")
+    print("\n--- Global DINOv2 Audit ---")
+    print(f"Images: {n}")
+    print(f"Neighbor records: {total_pairs}")
+    print(f"Cross-class neighbor records: {cross_class_pairs}")
     print(f"Median top-1 similarity: {np.median(similarities):.4f}")
 
     for threshold in [0.95, 0.98, 0.99, 0.995]:
         count = int((similarities >= threshold).sum())
-        print(f"Cosine similarity >= {threshold}: {count}")
 
-    print(f"\nReport: {output}")
+        print(
+            f"Top-1 similarity >= {threshold}: "
+            f"{count} images"
+        )
+
+    print(f"\nSaved: {OUTPUT}")
 
 
 if __name__ == "__main__":
