@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project investigates DINOv2 as a pretrained visual feature extractor for scanning electron microscopy (SEM) images. It is part of a research project at the Karlsruhe Institute of Technology (KIT), supervised by Lars Griem, with the longer-term goal of exploring foundation-model approaches for electron microscopy and microstructure analysis.
+This project investigates DINOv2 as a pretrained visual feature extractor for scanning electron microscopy (SEM) images.
 
 The first experiment establishes a classification baseline using frozen DINOv2 embeddings and a linear classifier, with particular attention to dataset quality and evaluation reliability.
 
