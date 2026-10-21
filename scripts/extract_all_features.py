@@ -13,7 +13,7 @@ from torch.utils.data import Dataset, DataLoader, Subset
 from torchvision import transforms
 from tqdm import tqdm
 
-from src.dataset import DATASET_ROOT
+from src.config import DATASET_ROOT
 from src.dinov2_encoder import get_dinov2, get_dinov2_transform
 
 

@@ -21,7 +21,7 @@ from pathlib import Path
 from PIL import Image
 from ultralytics import YOLO
 
-from src.dataset import DATASET_ROOT
+from src.config import DATASET_ROOT
 from src.preprocessing_v2 import crop_metadata_strip
 
 V2 = Path("outputs/dataset_v2")

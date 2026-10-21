@@ -4,7 +4,8 @@ from collections import Counter
 
 from sklearn.model_selection import train_test_split
 
-from src.dataset import get_dataset, DATASET_ROOT
+from torchvision.datasets import ImageFolder
+from src.config import DATASET_ROOT
 
 
 SEED = 42
@@ -12,7 +13,7 @@ OUTPUT = Path("outputs/splits.json")
 
 
 def main():
-    dataset = get_dataset()
+    dataset = ImageFolder(root=DATASET_ROOT)
 
     labels = [label for _, label in dataset.samples]
     indices = list(range(len(dataset)))

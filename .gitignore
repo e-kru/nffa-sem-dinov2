@@ -4,3 +4,5 @@ __pycache__/
 outputs/
 .vscode/
 .DS_Store
+
+/backups/
