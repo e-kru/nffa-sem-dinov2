@@ -1,0 +1,6 @@
+path: /mnt/data/stud-ueqio/nffa-sem-dinov2/outputs/dataset_v2/box_detector/yolo
+train: images/train
+val: images/val
+names:
+  0: measurement_box
+  1: metadata_strip

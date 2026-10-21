@@ -1,0 +1,13 @@
+{
+  "method": "All pHash <= 8, exact SHA/pixel, DINO cosine >= 0.995",
+  "seed": 42,
+  "assignment_attempts": 8,
+  "candidate_edges": 13923,
+  "groups": 16074,
+  "multi_image_groups": 778,
+  "ratios": {
+    "train": 0.7,
+    "val": 0.15,
+    "test": 0.15
+  }
+}

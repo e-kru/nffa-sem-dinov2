@@ -1,0 +1,7 @@
+{
+  "source_inventory": "outputs/splits.json",
+  "green_audit": "outputs/audit/green_overlays.csv",
+  "green_threshold": 15,
+  "crop_version": "preprocessing_v2",
+  "original_splits_used_for_new_split": false
+}

@@ -1,0 +1,13 @@
+{
+  "seed": 42,
+  "ratios": {
+    "train": 0.7,
+    "val": 0.15,
+    "test": 0.15
+  },
+  "grouping": "Original SHA-256 OR post-Crop-V2 pixel SHA-256",
+  "uses_phash": false,
+  "uses_dinov2_similarity": false,
+  "images": 18286,
+  "groups": 18011
+}

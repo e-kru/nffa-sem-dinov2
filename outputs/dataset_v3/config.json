@@ -1,0 +1,16 @@
+{
+  "source_manifest": "outputs/dataset_v2/manifest.csv",
+  "source_images": "/mnt/data/stud-ueqio/datasets/nffa_sem_100",
+  "normal_crop": "src.preprocessing_v2.crop_metadata_strip",
+  "yolo_weights": "outputs/dataset_v2/box_detector/runs/v2/weights/best.pt",
+  "measurement_box_threshold": 0.5,
+  "metadata_strip_threshold": 0.5,
+  "extra_crop": {
+    "top_fraction": 0.17,
+    "bottom_fraction": 0.1,
+    "applied_after": "crop_v2",
+    "only_for": "crop_v2_plus_fixed",
+    "enabled": false
+  },
+  "metadata_strip_action": "exclude"
+}

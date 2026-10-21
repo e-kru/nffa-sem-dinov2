@@ -1,0 +1,215 @@
+{
+  "split": "A_exact",
+  "test_images": 2743,
+  "accuracy": 0.9245351804593511,
+  "macro_f1": 0.9087351961173464,
+  "classification_report": {
+    "Biological": {
+      "precision": 0.950354609929078,
+      "recall": 0.9370629370629371,
+      "f1-score": 0.9436619718309859,
+      "support": 143.0
+    },
+    "Fibres": {
+      "precision": 1.0,
+      "recall": 0.9130434782608695,
+      "f1-score": 0.9545454545454546,
+      "support": 23.0
+    },
+    "Films_Coated_Surface": {
+      "precision": 0.8,
+      "recall": 0.782608695652174,
+      "f1-score": 0.7912087912087912,
+      "support": 46.0
+    },
+    "MEMS_devices_and_electrodes": {
+      "precision": 0.9181969949916527,
+      "recall": 0.919732441471572,
+      "f1-score": 0.9189640768588136,
+      "support": 598.0
+    },
+    "Nanowires": {
+      "precision": 0.9432234432234432,
+      "recall": 0.9363636363636364,
+      "f1-score": 0.9397810218978102,
+      "support": 550.0
+    },
+    "Particles": {
+      "precision": 0.937984496124031,
+      "recall": 0.9546351084812623,
+      "f1-score": 0.946236559139785,
+      "support": 507.0
+    },
+    "Patterned_surface": {
+      "precision": 0.9117043121149897,
+      "recall": 0.8933601609657947,
+      "f1-score": 0.9024390243902439,
+      "support": 497.0
+    },
+    "Porous_Sponge": {
+      "precision": 0.8461538461538461,
+      "recall": 0.8461538461538461,
+      "f1-score": 0.8461538461538461,
+      "support": 26.0
+    },
+    "Powder": {
+      "precision": 0.9117647058823529,
+      "recall": 0.9253731343283582,
+      "f1-score": 0.9185185185185185,
+      "support": 134.0
+    },
+    "Tips": {
+      "precision": 0.911504424778761,
+      "recall": 0.9406392694063926,
+      "f1-score": 0.9258426966292135,
+      "support": 219.0
+    },
+    "accuracy": 0.9245351804593511,
+    "macro avg": {
+      "precision": 0.9130886833198154,
+      "recall": 0.9048972708146843,
+      "f1-score": 0.9087351961173464,
+      "support": 2743.0
+    },
+    "weighted avg": {
+      "precision": 0.9245448517202252,
+      "recall": 0.9245351804593511,
+      "f1-score": 0.924465568529511,
+      "support": 2743.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      134,
+      0,
+      1,
+      1,
+      2,
+      2,
+      0,
+      0,
+      0,
+      3
+    ],
+    [
+      0,
+      21,
+      0,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    [
+      1,
+      0,
+      36,
+      0,
+      3,
+      2,
+      1,
+      0,
+      3,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      550,
+      6,
+      1,
+      33,
+      0,
+      0,
+      8
+    ],
+    [
+      2,
+      0,
+      4,
+      6,
+      515,
+      11,
+      2,
+      2,
+      2,
+      6
+    ],
+    [
+      0,
+      0,
+      2,
+      4,
+      7,
+      484,
+      3,
+      0,
+      4,
+      3
+    ],
+    [
+      1,
+      0,
+      0,
+      33,
+      4,
+      11,
+      444,
+      1,
+      3,
+      0
+    ],
+    [
+      0,
+      0,
+      0,
+      1,
+      1,
+      1,
+      1,
+      22,
+      0,
+      0
+    ],
+    [
+      2,
+      0,
+      1,
+      1,
+      3,
+      2,
+      0,
+      1,
+      124,
+      0
+    ],
+    [
+      1,
+      0,
+      1,
+      1,
+      5,
+      2,
+      3,
+      0,
+      0,
+      206
+    ]
+  ],
+  "class_names": [
+    "Biological",
+    "Fibres",
+    "Films_Coated_Surface",
+    "MEMS_devices_and_electrodes",
+    "Nanowires",
+    "Particles",
+    "Patterned_surface",
+    "Porous_Sponge",
+    "Powder",
+    "Tips"
+  ]
+}

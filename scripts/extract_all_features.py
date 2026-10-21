@@ -14,8 +14,8 @@ from torchvision import transforms
 from tqdm import tqdm
 
 from src.dataset import DATASET_ROOT
-from src.dinov2_encoder import get_dinov2
-from src.preprocessing_v2 import crop_metadata_strip
+from src.dinov2_encoder import get_dinov2, get_dinov2_transform
+
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -36,15 +36,7 @@ class SEMDatasetV2(Dataset):
             for row in records
         ]
 
-        self.transform = transforms.Compose([
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                mean=[0.485, 0.456, 0.406],
-                std=[0.229, 0.224, 0.225],
-            ),
-        ])
+        self.transform = get_dinov2_transform()
 
     def __len__(self):
         return len(self.samples)
@@ -54,11 +46,8 @@ class SEMDatasetV2(Dataset):
 
         with Image.open(path) as img:
             image = img.convert("RGB")
-
-        # Remove white SEM metadata strip
-        image = crop_metadata_strip(image)
-
-        # DINOv2 input: 3 x 224 x 224
+        
+        # Crop V2 and DINOv2 preprocessing
         image = self.transform(image)
 
         return image, label

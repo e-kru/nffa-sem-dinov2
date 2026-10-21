@@ -1,0 +1,8 @@
+{
+  "model": "dinov2_vits14",
+  "dataset": "nffa_sem_v2",
+  "num_images": 18614,
+  "preprocessing": "crop_metadata_strip_v2",
+  "chunk_size": 512,
+  "fingerprint": "c951d33916b2544351d017397926a32f2c1c379a85ba315a873dd660a5289b9c"
+}
