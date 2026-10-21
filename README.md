@@ -1,8 +1,8 @@
 # SEM Image Representation Learning with DINOv2
 
-Research project at the **Karlsruhe Institute of Technology (KIT)** exploring foundation models for scanning electron microscopy (SEM) and microstructure analysis.
+Research project exploring foundation models for scanning electron microscopy (SEM) and microstructure analysis.
 
-The goal is to develop domain-adapted visual representations for microscopy images. As a first step, we evaluate pretrained DINOv2 features on the 10-class NFFA-SEM dataset, with a focus on reliable data preparation and evaluation.
+The goal is to develop domain adapted visual representations for microscopy images. As a first step, we evaluate pretrained DINOv2 features on the 10-class NFFA-SEM dataset, with a focus on reliable data preparation and evaluation.
 
 ## Approach
 
@@ -25,7 +25,7 @@ The original baseline reports validation results only. Because the experiments u
 ## Next Steps
 
 - Compare DINOv2 architectures and input resolutions.
-- Investigate self-supervised adaptation to microscopy images.
+- Investigate self supervised adaptation to microscopy images.
 - Benchmark microscopy-specific foundation models and evaluate feature transfer to additional downstream tasks.
 
-**Status:** Initial classification baselines completed; further representation-learning experiments in progress.
+**Status:** Initial classification baselines completed; further representation learning experiments in progress.
