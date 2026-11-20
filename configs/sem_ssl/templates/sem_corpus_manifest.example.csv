@@ -1,0 +1,2 @@
+image_id,path,source,original_id,specimen_id,split
+EXAMPLE_ONLY,/absolute/path/to/clean_original.tif,EXAMPLE_SOURCE,original_001,specimen_001,train

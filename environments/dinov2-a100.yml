@@ -1,0 +1,26 @@
+# Historical legacy-stack reference only. Current setup reuses sem-gpu;
+# see docs/sem_ssl_pilot.md. Do not create this environment for the current pilot.
+# Meta's torch 2.0 / CUDA 11.7 / xFormers 0.0.18 stack, with SEM pilot pins.
+name: sem-dinov2-pilot
+channels:
+  - pytorch
+  - nvidia
+  - xformers
+  - conda-forge
+  - nodefaults
+dependencies:
+  - python=3.10
+  - pytorch::pytorch=2.0.0
+  - pytorch::pytorch-cuda=11.7
+  - pytorch::torchvision=0.15.0
+  - xformers::xformers=0.0.18
+  - pip
+  - pip:
+      - numpy==1.26.4
+      - Pillow==10.4.0
+      - omegaconf==2.3.0
+      - fvcore==0.1.5.post20221221
+      - iopath==0.1.10
+      - submitit==1.5.1
+      - torchmetrics==0.10.3
+      - pytest==8.3.5

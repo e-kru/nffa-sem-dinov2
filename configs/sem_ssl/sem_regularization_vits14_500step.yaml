@@ -1,0 +1,91 @@
+recipe: sem_regularization_vits14_500step
+dataset:
+  provider: verified_nffa_inventory_v1
+  root: ${oc.env:NFFA_SEM_ROOT,data/nffa_sem_100}
+  manifest: outputs/dataset_v3/manifest.csv
+  primary_split: outputs/dataset_v3/splits/split_A_exact.csv
+  holdout_splits: []
+  inventory: outputs/sem_ssl_inventories/nffa_split_a_v1.json
+  selection_protocol: split_A_train_v1
+  target_train_originals: 12801
+initialization:
+  checkpoint: ${oc.env:DINOV2_VITS14_CHECKPOINT,outputs/pretrained/dinov2_vits14_pretrain.pth}
+  sha256: b938bf1bc15cd2ec0feacfe3a1bb553fe8ea9ca46a7e1d8d00217f29aef60cd9
+experiment:
+  schedule_total_steps: 500
+  run_until_step: 500
+  warmup_steps: 25
+  freeze_last_layer_steps: 5
+  teacher_temp_warmup_steps: 100
+  milestones: [0, 500]
+runtime:
+  seed: 42
+  physical_batch: 32
+  effective_batch: 64
+  accumulation_steps: 2
+  student_activation_checkpointing: false
+  output: outputs/sem_ssl_regularization/nffa_split_a_vits14_500step_v1_seed42
+student:
+  arch: vit_small
+  patch_size: 14
+  num_register_tokens: 0
+  block_chunks: 0
+  ffn_layer: mlp
+  drop_path_rate: 0.1
+train:
+  batch_size_per_gpu: 32
+  num_workers: 16
+  centering: centering
+loader:
+  persistent_workers: true
+  prefetch_factor: 2
+  pin_memory: true
+  non_blocking: true
+  decoded_cache: null
+crops:
+  global_crops_size: 224
+  local_crops_size: 98
+  global_crops_scale: [0.5, 1.0]
+  local_crops_scale: [0.15, 0.5]
+  local_crops_number: 8
+dino:
+  loss_weight: 1.0
+  koleo_loss_weight: 0.1
+  head_n_prototypes: 65536
+  head_nlayers: 3
+  head_hidden_dim: 2048
+  head_bottleneck_dim: 256
+ibot:
+  loss_weight: 1.0
+  separate_head: false
+  mask_sample_probability: 0.5
+  mask_ratio_min_max: [0.1, 0.5]
+optim:
+  # The Small adapter validates Meta defaults on load. The regularization
+  # trainer reads the two explicit absolute LR schedules below.
+  scaling_rule: sqrt_wrt_1024
+  backbone_lr: 1.0e-05
+  backbone_min_lr: 1.0e-07
+  head_lr: 1.0e-04
+  head_min_lr: 1.0e-06
+  layerwise_decay: 0.9
+  patch_embed_lr_mult: 0.2
+  weight_decay: 0.04
+  weight_decay_end: 0.2
+  adamw_beta1: 0.9
+  adamw_beta2: 0.999
+  clip_grad: 3.0
+teacher:
+  momentum_teacher: 0.999
+  final_momentum_teacher: 1.0
+  warmup_teacher_temp: 0.04
+  teacher_temp: 0.07
+checkpointing:
+  recovery_every_optimizer_updates: 100
+  keep_recent_recovery_snapshots: 2
+evaluation:
+  classification_splits: [A]
+  classification_workers: 8
+  segmentation_workers: 16
+  head_profile: residual_v1
+  verified_data_root: outputs/encoder_evaluation/nffa_5000step_workers_v1/dinov2_vits14_b938bf1bc15cd2ec

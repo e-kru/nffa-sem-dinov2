@@ -1,0 +1,64 @@
+# Standalone continued-pretraining recipe; merge over the pinned Meta defaults.
+experiment:
+  name: nffa_sem_vits14_200step
+  schedule_total_steps: 200
+  run_until_step: 200
+  warmup_steps: 20
+  freeze_last_layer_steps: 10
+  teacher_temp_warmup_steps: 20
+  milestones: [0, 50, 100, 200]
+  recovery_interval: 25
+  keep_recent: 2
+  log_interval: 1
+  deterministic: warn
+dataset:
+  provider: nffa_v3
+  root: ${oc.env:NFFA_SEM_ROOT,data/nffa_sem_100}
+  manifest: outputs/dataset_v3/manifest.csv
+  primary_split: outputs/dataset_v3/splits/split_B_full.csv
+  holdout_splits: [outputs/dataset_v3/splits/split_A_exact.csv]
+student:
+  arch: vit_small
+  patch_size: 14
+  drop_path_rate: 0.3
+  block_chunks: 0
+  ffn_layer: mlp
+train:
+  # Selected by the full-SSL A100 loader benchmark; see docs/sem_ssl_loader_throughput.md.
+  batch_size_per_gpu: 64
+  num_workers: 16
+  centering: centering
+  seed: 42
+  # Epoch-based fields are unused by the new explicit step schedules.
+  OFFICIAL_EPOCH_LENGTH: 200
+loader:
+  decoded_cache: null
+  persistent_workers: false
+  prefetch_factor: 2
+  pin_memory: true
+  non_blocking: true
+  profile: false
+crops:
+  global_crops_size: 224
+  local_crops_size: 98
+  global_crops_scale: [0.32, 1.0]
+  local_crops_scale: [0.05, 0.32]
+  local_crops_number: 8
+optim:
+  epochs: 1
+  base_lr: 0.0002
+  min_lr: 0.000001
+  weight_decay: 0.04
+  weight_decay_end: 0.1
+  clip_grad: 3.0
+  adamw_beta1: 0.9
+  adamw_beta2: 0.999
+teacher:
+  momentum_teacher: 0.996
+  final_momentum_teacher: 1.0
+  warmup_teacher_temp: 0.04
+  teacher_temp: 0.07
+ibot:
+  separate_head: false
+  mask_sample_probability: 0.5
+  mask_ratio_min_max: [0.1, 0.5]

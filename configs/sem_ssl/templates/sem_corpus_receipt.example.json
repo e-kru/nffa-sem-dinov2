@@ -1,0 +1,18 @@
+{
+  "schema": "verified_sem_manifest_v1",
+  "status": "PLACEHOLDER_NOT_READY",
+  "verified_train_originals": null,
+  "manifest_sha256": null,
+  "corpus_version": null,
+  "content_snapshot": null,
+  "curation_record": null,
+  "leakage_review_record": null,
+  "exclusions": {
+    "nffa_A_B_val_test_and_groups": false,
+    "all_aachen": false,
+    "nasa_benchmarks_if_evaluated": false
+  },
+  "sources": {
+    "EXAMPLE_SOURCE": {"orientation_invariant": false}
+  }
+}

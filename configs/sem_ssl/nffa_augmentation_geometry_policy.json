@@ -1,0 +1,11 @@
+{
+  "schema": "nffa_split_a_geometry_allowlist_v1",
+  "source": "nffa_sem_100",
+  "allow": [],
+  "evidence": [
+    "https://b2share.eudat.eu/records/zja8y-53j14",
+    "https://www.nature.com/articles/sdata2018172.pdf",
+    "https://doi.org/10.1038/s41598-017-13565-z"
+  ],
+  "rationale": "NFFA's categories are morphology labels and the released JPEGs omit acquisition metadata. The available source information does not establish any provenance-defined subset with an irrelevant in-plane specimen axis, including mirror symmetry."
+}

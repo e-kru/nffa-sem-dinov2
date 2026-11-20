@@ -1,0 +1,118 @@
+# Controlled arm D. Coefficients are resolved once by the shared training-only calibration.
+recipe: sem_cellstyle_vitl14_v1
+dataset:
+  provider: verified_sem_manifest_v1
+  target_train_originals: 200000
+  feasible_first_corpus_originals: 100000
+  manifest: null
+  receipt: null
+initialization:
+  checkpoint: null
+  sha256: null
+budget:
+  full_original_presentation_passes: 100
+  initial_run_until_passes: 10
+  checkpoints_at_passes:
+  - 0
+  - 1
+  - 5
+  - 10
+  - 25
+  - 50
+  - 100
+  warmup_passes: 5
+  freeze_last_layer_passes: 1
+  teacher_temperature_warmup_passes: 20
+runtime:
+  physical_batch: null
+  effective_batch: 128
+  student_activation_checkpointing: true
+  activation_checkpoint_reentrant: false
+  seed: 42
+  deterministic_cuda_algorithms: false
+  output: outputs/sem_ssl_regularization/v1_seed42/runs/D
+student:
+  arch: vit_large
+  patch_size: 14
+  in_chans: 3
+  num_register_tokens: 0
+  block_chunks: 0
+  ffn_layer: mlp
+  drop_path_rate: 0.1
+train:
+  batch_size_per_gpu: 32
+  num_workers: 16
+  centering: centering
+loader:
+  persistent_workers: true
+  prefetch_factor: 2
+  pin_memory: true
+  non_blocking: true
+  decoded_cache: null
+crops:
+  global_crops_size: 518
+  local_crops_size: 224
+  global_crops_scale:
+  - 0.5
+  - 1.0
+  local_crops_scale:
+  - 0.15
+  - 0.5
+  local_crops_number: 8
+dino:
+  loss_weight: 1.0
+  koleo_loss_weight: 0.1
+  head_n_prototypes: 65536
+  head_nlayers: 3
+  head_hidden_dim: 2048
+  head_bottleneck_dim: 256
+ibot:
+  loss_weight: 1.0
+  separate_head: false
+  mask_sample_probability: 0.5
+  mask_ratio_min_max:
+  - 0.1
+  - 0.5
+optim:
+  scaling_rule: absolute
+  backbone_lr: 1.0e-05
+  backbone_min_lr: 1.0e-07
+  head_lr: 0.0001
+  head_min_lr: 1.0e-06
+  layerwise_decay: 0.9
+  patch_embed_lr_mult: 0.2
+  weight_decay: 0.04
+  weight_decay_end: 0.2
+  adamw_beta1: 0.9
+  adamw_beta2: 0.999
+  clip_grad: 3.0
+teacher:
+  momentum_teacher: 0.999
+  final_momentum_teacher: 1.0
+  warmup_teacher_temp: 0.04
+  teacher_temp: 0.07
+checkpointing:
+  recovery_every_optimizer_updates: 1000
+  keep_recent_recovery_snapshots: 2
+evaluation:
+  quick_validation_passes:
+  - 1
+  - 5
+  full_validation_passes:
+  - 0
+  - 10
+  - 25
+  - 50
+  - 100
+  classification_workers: 8
+  segmentation_workers: 16
+  verified_data_root: null
+regularization:
+  l2_sp: true
+  feature_distillation: true
+  lambda_sp: null
+  lambda_feat: null
+  lambda_cls: 1.0
+  lambda_patch: 1.0
+  calibration_receipt: null
+  calibration_sha256: null

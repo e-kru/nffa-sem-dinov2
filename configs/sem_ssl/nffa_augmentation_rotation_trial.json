@@ -1,0 +1,6 @@
+{
+  "schema": "nffa_split_a_rotation_trial_v1",
+  "source": "nffa_sem_100",
+  "scope": "all_verified_split_a_train",
+  "rationale": "Explicit experimental choice to measure the effect of in-plane right-angle rotations on NFFA morphology representations."
+}

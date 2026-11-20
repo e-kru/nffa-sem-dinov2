@@ -1,0 +1,24 @@
+.venv/
+.venv-dinov2/
+external/
+__pycache__/
+*.pyc
+outputs/
+.vscode/
+.DS_Store
+
+/backups/
+
+# Local data, weights and generated records.
+/*.log
+
+/data/
+/weights/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+/configs/local/
+/docs/forschungstagebuch.md
+/docs/benchmarks/
+/.pytest_cache/

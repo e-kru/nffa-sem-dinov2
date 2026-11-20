@@ -1,0 +1,12 @@
+# Python 3.11, isolated local verification. Not the A100 environment.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.0.0+cpu
+torchvision==0.15.1+cpu
+numpy==1.26.4
+Pillow==10.4.0
+omegaconf==2.3.0
+fvcore==0.1.5.post20221221
+iopath==0.1.10
+submitit==1.5.1
+torchmetrics==0.10.3
+pytest==8.3.5

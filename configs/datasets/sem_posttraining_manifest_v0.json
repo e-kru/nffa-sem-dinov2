@@ -1,0 +1,21 @@
+{
+  "minimum_side": 128,
+  "training_resolution": 224,
+  "header_workers": 2,
+  "header_inspector": "data/_audit/additional_sources_2026-11-18/audit_source.py",
+  "audit_directories": [
+    "data/_audit/full_inventory",
+    "data/_audit/additional_sources_2026-11-18/inventory"
+  ],
+  "nffa": {
+    "root": "data/nffa_sem_100",
+    "manifest": "outputs/dataset_v3/manifest.csv",
+    "split": "outputs/dataset_v3/splits/split_A_exact.csv",
+    "inventory": "outputs/sem_ssl_inventories/nffa_split_a_v1.json"
+  },
+  "aachen": {
+    "root": "data/aachen_heerlen",
+    "manifest": "outputs/aachen_heerlen/splits/group_split_seed42.csv",
+    "reference": "outputs/encoder_evaluation/nffa_5000step_workers_v1/dinov2_vits14_b938bf1bc15cd2ec/segmentation/runs/A3/linear/seed42_cf15f10fc715/config.json"
+  }
+}
