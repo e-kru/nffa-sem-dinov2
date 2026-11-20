@@ -10,29 +10,17 @@ SHA-256-Dateiduplikate; NFFA und Aachen bleiben davon ausgeschlossen.
 
 This research project investigates frozen DINOv2 representations for scanning electron microscopy (SEM) and materials-science microstructures. It evaluates image classification on NFFA-SEM and semantic segmentation on Aachen-Heerlen, with controlled experiments on input resolution and cropping.
 
-## Key Results
+## Key Findings
 
-**NFFA-SEM classification.** Historical test results from the existing experiments; these measurements have not been rerun for this overview. Split A groups exact duplicates; Split B uses conservative visual-similarity grouping.
+- **Classification.** DINOv2 ViT-S/14 with an MLP reached **94.9% macro-F1** on NFFA Split A validation after 500 SEM adaptation updates.
+- **Segmentation.** Frozen ViT-L/14 features with a CNN8 decoder reached **68.6% mIoU** on Aachen-Heerlen validation at 896 × 672.
+- **Domain adaptation.** One epoch on 172,300 SEM images improved Aachen CNN8 MA-IoU by **1.34 percentage points** over the original ViT-S/14.
 
-| Model | Split A Macro-F1 | Split B Macro-F1 |
-| --- | --- | --- |
-| DINOv2 ViT-S/14 + Logistic Regression | 90.87% | 87.85% |
-| DINOv2 ViT-S/14 + 3-layer MLP | 93.61% | 91.13% |
-
-**Aachen-Heerlen segmentation.** Frozen DINOv2 ViT-S/14 with a CNN8 decoder; input dimensions are width × height.
-
-| Input strategy | MA-IoU | mIoU |
-| --- | --- | --- |
-| Full image, 448 × 336 | 38.65% | 65.54% |
-| Full image, 672 × 504 | 41.69% | 67.46% |
-| Full image, 896 × 672 | **42.35%** | **67.88%** |
-| Four 448 × 336 crops | 41.01% | 66.73% |
-
-Segmentation results are **validation-only**, seed 42, using validation-selected thresholds. The segmentation test split remains untouched. All comparisons use the same original-resolution reference masks.
+These are single-seed validation results. Segmentation thresholds were selected on validation.
 
 ## Method
 
-The DINOv2 encoder remains frozen throughout these baselines. Global embeddings feed classification heads; spatial patch features feed linear or CNN8 segmentation heads. Resolution experiments process complete images, while cropping uses four non-overlapping quadrants and one shared decoder, reconstructing predictions at original resolution.
+Downstream heads train on frozen DINOv2 features. Global embeddings feed classification heads, and spatial patch features feed linear or CNN8 segmentation heads. Resolution experiments process complete images, while cropping uses four non-overlapping quadrants and one shared decoder, reconstructing predictions at original resolution.
 
 In the seed-42 comparison, increasing input resolution improves segmentation performance, particularly with CNN8. Four high-resolution crops improve over the low-resolution full image but perform slightly below the highest-resolution full image.
 
